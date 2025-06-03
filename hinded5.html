@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<title>Hinnete statistika</title>
+<style>
+body { font-family: sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+.container { max-width: 800px; margin: 40px auto; padding: 30px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+p { line-height: 1.6; color: #555; }
+textarea {
+width: calc(100% - 20px);
+min-height: 200px;
+margin-bottom: 15px;
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 4px;
+font-family: monospace;
+font-size: 14px;
+box-sizing: border-box;
+}
+button {
+display: block;
+width: 100%;
+padding: 12px;
+background-color: #3498db;
+color: white;
+border: none;
+border-radius: 4px;
+font-size: 16px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+margin-bottom: 10px;
+}
+button:hover { background-color: #2980b9; }
+table { border-collapse: collapse; width: 100%; margin-top: 25px; }
+th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+th { background-color: #ecf0f1; color: #2c3e50; font-weight: bold; }
+td[rowspan] { vertical-align: top; background-color: #f9f9f9; }
+#outputTable p { font-weight: bold; color: #c0392b; }
+#downloadButton, #downloadSimplifiedButton {
+background-color: #27ae60;
+}
+#downloadButton:hover, #downloadSimplifiedButton:hover {
+background-color: #229a53;
+}
+#showSimplifiedButton {
+background-color: #e67e22; /* Orange color */
+}
+#showSimplifiedButton:hover {
+background-color: #d35400; /* Darker orange */
+}
+#placeholderButton { /* New style for the placeholder button */
+background-color: #9b59b6; /* Purple color */
+}
+#placeholderButton:hover {
+background-color: #8e44ad; /* Darker purple */
+}
+
+.summary-row td {
+font-weight: bold;
+background-color: #e0f2f7;
+border-top: 2px solid #3498db;
+}
+.simplified-table-summary-row td {
+font-weight: bold;
+background-color: #e0f2f7;
+border-top: 2px solid #3498db;
+}
+
+.header-image {
+display: block;
+margin: 20px auto;
+max-width: 100%;
+height: auto;
+border-radius: 8px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body>
+
+<img src="/images/image1.jpg" alt="image1" class="header-image">
+<img src="/images/image2.jpg" alt="image2" class="header-image">
+
+<div class="container">
+<h2>Hinnete statistika</h2>
+<p>Sisesta oma hinnetetabel allolevasse tekstikasti. "Mida copy-paste'da?" -vaata ülalolevaid pilte. </p>
+<label for="gradesInput"></label><textarea id="gradesInput" placeholder="Kopeeri oma hinnetabel siia... näiteks:
+Ajalugu 8. klass
+5 5 , 5 , 5 5+ , 5 , 5 , 5+ , 5 , 5 , 4 , 5 , 5 , 5+
+Bioloogia 8. klass
+5 5 , 5 , 5 5 , 4 , 5- , 5 , 4 , 5 , 5 , 5 , 5 , 4+ , 5 , 5 , 5
+..."></textarea>
+<button onclick="analyzeAndDisplay('full')">Koosta tabel</button>
+<button id="showSimplifiedButton" style="display: none;" onclick="analyzeAndDisplay('simplified')">Kuva lihtsustatud tabel</button>
+<button id="downloadButton" style="display: none;" onclick="downloadTableAsImage('gradesTable', 'hinnetetabel.png')">Lae tabel alla pildina</button>
+<button id="downloadSimplifiedButton" style="display: none;" onclick="downloadTableAsImage('simplifiedGradesTable', 'lihtsustatud_hinnetetabel.png')">Lae alla lihtsustatud tabel</button>
+
+
+<div id="outputTable"></div>
+<button id="placeholderButton" style="display: none;" onclick="window.location.href='https://www.google.com/search?q=how+to+get+better+grades'">Teie keskmine hinne on alla 3,5. ??? Palun vajutage siia.</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const gradeValues = {
+"5+": 5, "5": 5, "5-": 5,
+"4+": 4, "4": 4, "4-": 4,
+"3+": 3, "3": 3, "3-": 3,
+"2": 2, "1": 1
+};
+const gradeOrder = ["5+", "5", "5-", "4+", "4", "4-", "3+", "3", "3-", "2", "1"];
+
+let currentAnalyzedData = null; // Globaalne muutuja analüüsitud andmete hoidmiseks
+
+function isSubjectLine(line, ignoredSubjects) {
+    if (!line || line.length === 0) return false;
+    if (ignoredSubjects.includes(line)) return false;
+
+    if (line.match(/^\s*(\d\S*|[AMNT]\S*)/)) {
+        if (line.includes('\t') || line.includes(',')) {
+            return false;
+        }
+        if (line.split(/\s+/).length === 1 && line.length <= 3) return false;
+    }
+    return /[a-zA-ZõäöüšžÕÄÖÜŠŽ]/.test(line);
+}
+
+function parseAndAnalyzeGrades(inputText) {
+    const ignoredFullSubjectNames = ["Robootika ring", "Küberpuuring", "Klassijuhatamine 8. klass"];
+    const allowedCurrentGrades = Object.keys(gradeValues);
+    const results = [];
+    const allGradesCollected = [];
+    const lines = inputText.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+        const currentLine = lines[i].trim();
+        if (!currentLine) continue;
+
+        if (ignoredFullSubjectNames.includes(currentLine)) {
+            if (i + 1 < lines.length) {
+                const nextLine = lines[i+1].trim();
+                if (nextLine && (nextLine.match(/^[\dAM\s+-]/) || nextLine.includes(',') || nextLine.includes('/'))) {
+                    if (!isSubjectLine(nextLine, ignoredFullSubjectNames)) {
+                        i++;
+                    }
+                }
+            }
+            continue;
+        }
+
+        if (isSubjectLine(currentLine, ignoredFullSubjectNames)) {
+            if (i + 1 < lines.length) {
+                const gradesLineRaw = lines[i+1].trim();
+                if (gradesLineRaw && !isSubjectLine(gradesLineRaw, ignoredFullSubjectNames) &&
+                    (gradesLineRaw.match(/^[\dAM\s+-]/) || gradesLineRaw.includes(',') || gradesLineRaw.includes('/'))) {
+
+                    const gradeParts = gradesLineRaw.split('\t');
+                    let currentGradesStr = "";
+                    for (let j = gradeParts.length - 1; j >= 0; j--) {
+                        if (gradeParts[j].trim() !== "") {
+                            currentGradesStr = gradeParts[j].trim();
+                            break;
+                        }
+                    }
+
+                    if (currentGradesStr) {
+                        const cleanedGradesStr = currentGradesStr.replace(/\s\/\s/g, ' , ');
+                        const gradeTokens = cleanedGradesStr.split(',')
+                            .map(g => g.trim())
+                            .filter(g => g !== "" && !g.includes('*'));
+
+                        const subjectGradesList = gradeTokens.filter(token => allowedCurrentGrades.includes(token));
+
+                        if (subjectGradesList.length > 0) {
+                            const gradeFrequencies = {};
+                            let sumOfGrades = 0;
+                            subjectGradesList.forEach(grade => {
+                                gradeFrequencies[grade] = (gradeFrequencies[grade] || 0) + 1;
+                                sumOfGrades += gradeValues[grade];
+                                allGradesCollected.push(grade);
+                            });
+
+                            const averageGrade = (sumOfGrades / subjectGradesList.length).toFixed(3);
+                            results.push({ subjectName: currentLine, gradeFrequencies: gradeFrequencies, averageGrade: averageGrade });
+                        }
+                    }
+                    i++;
+                }
+            }
+        }
+    }
+
+    const totalGradeFrequencies = {};
+    let totalSumOfGrades = 0;
+    allGradesCollected.forEach(grade => {
+        totalGradeFrequencies[grade] = (totalGradeFrequencies[grade] || 0) + 1;
+        totalSumOfGrades += gradeValues[grade];
+    });
+    const totalAverageGrade = allGradesCollected.length > 0 ? (totalSumOfGrades / allGradesCollected.length).toFixed(3) : "N/A";
+
+    return {
+        subjectResults: results,
+        totalSummary: {
+            gradeFrequencies: totalGradeFrequencies,
+            averageGrade: totalAverageGrade
+        }
+    };
+}
+
+function generateFullTableHTML(data) {
+    if (!data || !data.subjectResults || data.subjectResults.length === 0) {
+        return "<p>Andmeid ei leitud või sisend oli tühi. Kontrolli sisendandmeid ja proovi uuesti.</p>";
+    }
+
+    let tableHTML = `
+    <table id="gradesTable">
+        <thead>
+            <tr>
+                <th>Aine nimi</th>
+                <th>Hinne</th>
+                <th>Esinemissagedus</th>
+                <th>Jooksvate hinnete keskmine</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.subjectResults.forEach(item => {
+        const subject = item.subjectName;
+        const frequencies = item.gradeFrequencies;
+        const averageGrade = item.averageGrade;
+        const grades = Object.keys(frequencies).sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+
+        const rowSpanCount = grades.length;
+
+        if (rowSpanCount > 0) {
+            grades.forEach((grade, index) => {
+                tableHTML += `<tr>`;
+                if (index === 0) {
+                    tableHTML += `<td rowspan="${rowSpanCount}">${subject}</td>`;
+                }
+                tableHTML += `<td>${grade}</td>`;
+                tableHTML += `<td>${frequencies[grade]}</td>`;
+                if (index === 0) {
+                    tableHTML += `<td rowspan="${rowSpanCount}">${averageGrade}</td>`;
+                }
+                tableHTML += `</tr>`;
+            });
+        }
+    });
+
+    const totalFrequencies = data.totalSummary.gradeFrequencies;
+    const totalAverage = data.totalSummary.averageGrade;
+    const totalGradesSorted = Object.keys(totalFrequencies).sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+    const totalRowSpan = totalGradesSorted.length > 0 ? totalGradesSorted.length : 1;
+
+    tableHTML += `
+        <tr class="summary-row">
+            <td rowspan="${totalRowSpan}">KOKKUVÕTE</td>
+            <td>${totalGradesSorted[0] || 'N/A'}</td>
+            <td>${totalFrequencies[totalGradesSorted[0]] || 'N/A'}</td>
+            <td rowspan="${totalRowSpan}">${totalAverage}</td>
+        </tr>
+    `;
+    for (let i = 1; i < totalGradesSorted.length; i++) {
+        tableHTML += `
+            <tr class="summary-row">
+                <td>${totalGradesSorted[i]}</td>
+                <td>${totalFrequencies[totalGradesSorted[i]]}</td>
+            </tr>
+        `;
+    }
+    if (totalGradesSorted.length === 0 && data.subjectResults.length > 0) {
+        tableHTML += `
+            <tr class="summary-row">
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+        `;
+    }
+
+
+    tableHTML += `
+        </tbody>
+    </table>
+    `;
+    return tableHTML;
+}
+
+function generateSimplifiedTableHTML(data) {
+    if (!data || !data.subjectResults || data.subjectResults.length === 0) {
+        return "<p>Andmeid ei leitud või sisend oli tühi. Kontrolli sisendandmeid ja proovi uuesti.</p>";
+    }
+
+    let tableHTML = `
+    <table id="simplifiedGradesTable">
+        <thead>
+            <tr>
+                <th>Aine nimi</th>
+                <th>Keskmine hinne</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.subjectResults.forEach(item => {
+        tableHTML += `
+        <tr>
+            <td>${item.subjectName}</td>
+            <td>${item.averageGrade}</td>
+        </tr>
+        `;
+    });
+
+    tableHTML += `
+        <tr class="simplified-table-summary-row">
+            <td><b>Kõigi ainete keskmine</b></td>
+            <td><b>${data.totalSummary.averageGrade}</b></td>
+        </tr>
+    `;
+
+    tableHTML += `
+        </tbody>
+    </table>
+    `;
+    return tableHTML;
+}
+
+function analyzeAndDisplay(type) {
+    const inputText = document.getElementById('gradesInput').value;
+    const outputTableDiv = document.getElementById('outputTable');
+    const downloadButton = document.getElementById('downloadButton');
+    const showSimplifiedButton = document.getElementById('showSimplifiedButton');
+    const downloadSimplifiedButton = document.getElementById('downloadSimplifiedButton');
+    const placeholderButton = document.getElementById('placeholderButton');
+
+    // Peida kõik nupud alguses või tühja sisendi korral
+    downloadButton.style.display = 'none';
+    showSimplifiedButton.style.display = 'none';
+    downloadSimplifiedButton.style.display = 'none';
+    placeholderButton.style.display = 'none';
+
+    if (!inputText.trim()) {
+        outputTableDiv.innerHTML = "<p>Sisendväli on tühi. Palun sisesta hinded.</p>";
+        return;
+    }
+
+    currentAnalyzedData = parseAndAnalyzeGrades(inputText);
+
+    if (currentAnalyzedData && currentAnalyzedData.subjectResults.length > 0) {
+        // Kuva "Kuva lihtsustatud tabel" nupp, kui andmed on olemas
+        showSimplifiedButton.style.display = 'block';
+
+        if (type === 'full') {
+            outputTableDiv.innerHTML = generateFullTableHTML(currentAnalyzedData);
+            downloadButton.style.display = 'block';
+            downloadSimplifiedButton.style.display = 'none';
+        } else if (type === 'simplified') {
+            outputTableDiv.innerHTML = generateSimplifiedTableHTML(currentAnalyzedData);
+            downloadButton.style.display = 'none';
+            downloadSimplifiedButton.style.display = 'block';
+        }
+
+        // Kontrolli üldist keskmist hinnet ja näita placeholder nuppu
+        const overallAverage = parseFloat(currentAnalyzedData.totalSummary.averageGrade);
+        if (!isNaN(overallAverage) && overallAverage < 3.500) {
+            placeholderButton.style.display = 'block';
+        }
+
+    } else {
+        outputTableDiv.innerHTML = "<p>Andmeid ei leitud või sisend oli sobimatu. Kontrolli sisendandmeid ja proovi uuesti.</p>";
+    }
+}
+
+function downloadTableAsImage(tableId, filename) {
+    const table = document.getElementById(tableId);
+
+    if (table) {
+        html2canvas(table, {
+            scale: 2,
+            useCORS: true,
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(error => {
+            console.error("Pildi genereerimisel tekkis viga:", error);
+            alert("Pildi allalaadimisel tekkis viga. Palun proovi uuesti.");
+        });
+    } else {
+        alert("Tabelit ei leitud! Palun genereeri tabel enne allalaadimist.");
+    }
+}
+</script>
+
+</body>
+</html>
