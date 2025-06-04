@@ -1,4 +1,260 @@
 <!DOCTYPE html>
-<h1>
-  Hello, World!
-</h1>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minu Isiklik Veebileht</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS muuutujad lihtsamaks haldamiseks */
+        :root {
+            --primary-color: #3498db; /* Hele sinine */
+            --secondary-color: #2c3e50; /* Tume sinakashall */
+            --text-color: #333; /* Tumehall tekst */
+            --background-color: #f4f7f6; /* Hele taust */
+            --light-gray: #ecf0f1; /* Väga hele hall */
+            --border-radius: 5px;
+        }
+
+        /* Üldised stiilid */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Päis */
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .time-widget-container {
+            margin-top: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: var(--border-radius);
+            display: inline-block; /* Hoiab vidina koos */
+        }
+
+        .time-widget-container a,
+        .time-widget-container span {
+            color: white !important; /* Tagab, et tekst on valge */
+            font-size: 28px !important; /* Veidi väiksem font päises */
+            text-decoration: none !important;
+        }
+
+        /* Põhisisu ja külgriba paigutus */
+        .main-layout {
+            display: flex;
+            flex-grow: 1; /* Võtab ülejäänud kõrguse */
+            gap: 20px; /* Vahe sisu ja külgriba vahel */
+        }
+
+        .content {
+            flex: 3; /* Sisu võtab rohkem ruumi */
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar {
+            flex: 1; /* Külgriba võtab vähem ruumi */
+            background-color: var(--light-gray);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h3 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: block; /* Teeb lingi klikitavaks üle terve rea */
+            padding: 5px 0;
+        }
+
+        .sidebar ul li a:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Tutvustuse sektsioon */
+        .intro-section h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-weight: 700;
+        }
+
+        .intro-section p {
+            margin-bottom: 15px;
+        }
+
+        /* Kontakt sektsioon */
+        .contact-section {
+            margin-top: 40px;
+            border-top: 1px solid var(--light-gray);
+            padding-top: 20px;
+        }
+
+        .contact-section h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .contact-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .contact-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .contact-section ul li strong {
+            color: var(--secondary-color);
+        }
+
+        /* Jalus */
+        footer {
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Responsiveness (Mobiilile optimeerimine) */
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column; /* Virnasta elemendid mobiilis üksteise alla */
+            }
+
+            .sidebar {
+                order: -1; /* Paiguta külgriba sisu ette, kui mobiilis on menüü ülal */
+                margin-bottom: 20px;
+            }
+
+            .time-widget-container a,
+            .time-widget-container span {
+                font-size: 22px !important; /* Väiksem font mobiilis */
+            }
+
+            .content, .sidebar {
+                padding: 20px; /* Väiksemad paddingud mobiilis */
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 28px;
+            }
+
+            .time-widget-container a,
+            .time-widget-container span {
+                font-size: 18px !important; /* Veel väiksem font väga väikestel ekraanidel */
+            }
+
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Minu Isiklik Veebileht</h1>
+            <p>Tere tulemast minu veebilehele!</p>
+            <div class="time-widget-container">
+                <a href="https://time.is/Tallinn" id="time_is_link" rel="nofollow" style="font-size:36px">Kohalik aeg paigas nimega Tallinn:</a>
+                <span id="Tallinn_z72b" style="font-size:36px"></span>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <main class="content">
+                <section class="intro-section">
+                    <h2>Tere tulemast!</h2>
+                    <p>AAAAAAAAAAAAAA.</p>
+                    <p>AAAAAAAAAAAAa</p>
+                    <p>AAAAAAAAAAAAAAAAAAAAAAAAAAA</p>
+                </section>
+
+                <section class="contact-section">
+                    <h2>Kontakt</h2>
+                    <ul>
+                        <li><strong>E-post:</strong> <a href="mailto:sinu.email@example.com">sinu.email@example.com</a></li>
+                        <li><strong>Telefon:</strong> +372 123 4567</li>
+                        <li><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/sinu-profiil/" target="_blank">linkedin.com/in/sinu-profiil</a></li>
+                        <li><strong>GitHub:</strong> <a href="https://github.com/sinu-kasutajanimi" target="_blank">github.com/sinu-kasutajanimi</a></li>
+                    </ul>
+                </section>
+            </main>
+
+            <aside class="sidebar">
+                <h3>Leheosad</h3>
+                <ul>
+                    <li><a href="about.html">Minust</a></li>
+                    <li><a href="projects.html">Projektid</a></li>
+                    <li><a href="skills.html">Oskused</a></li>
+                    <li><a href="blog.html">Blogi</a></li>
+                    <li><a href="gallery.html">Galerii</a></li>
+                </ul>
+            </aside>
+        </div>
+
+        <footer>
+            <p>&copy; abcdefghijklmnop</p>
+        </footer>
+    </div>
+
+    <script src="//widget.time.is/t.js"></script>
+    <script>
+    time_is_widget.init({Tallinn_z72b:{}});
+    </script>
+</body>
+</html>
