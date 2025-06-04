@@ -14,9 +14,6 @@
           ready: () => {
             console.log('MathJax is ready and has started.');
             MathJax.startup.defaultReady();
-            // MathJax töötleb lehe sisu automaatselt pärast laadimist.
-            // Akordionite avamisel kutsume MathJax.typesetPromise() uuesti välja
-            // konkreetse paneeli sisu jaoks.
           }
         }
       };
@@ -52,7 +49,7 @@
             text-align: left;
             outline: none;
             font-size: 1.1em;
-            transition: background-color 0.4s; /* Ainult taustavärvi üleminek */
+            transition: background-color 0.4s;
             border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
@@ -66,9 +63,9 @@
             background-color: #eaf6ff;
             color: #007bff;
             font-size: 0.95em;
-            padding: 10px 18px; /* Väiksem padding lahenduse nupul */
+            padding: 10px 18px;
             border-top: 1px dashed #cce7ff;
-            margin-top: 10px; /* Eraldab lahenduse nupu ülesande tekstist */
+            margin-top: 10px;
         }
         .active, .accordion:hover {
             background-color: #e2e2e2;
@@ -80,23 +77,22 @@
             content: '\02795'; /* Plussmärk */
             font-size: 0.8em;
             color: #777;
-            /* float: right; Eemaldatud, kuna flexbox tegeleb paigutusega */
             margin-left: 5px;
             transition: transform 0.4s ease;
         }
         .solution-accordion:after {
-            color: #007bff; /* Sinine pluss/miinus lahenduse nupul */
+            color: #007bff;
         }
         .active:after {
             content: '\2796'; /* Miinusmärk */
-            transform: rotate(180deg); /* Animatsiooniks, kui soovid */
+            /* transform: rotate(180deg); // Võid lisada, kui soovid keerlevat efekti */
         }
         .panel, .solution-panel {
-            padding: 0 18px; /* Algselt padding 0, et animatsioon oleks sujuv */
+            padding: 0 18px; /* Algne vertikaalne padding 0, kui suletud */
             background-color: white;
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out; /* Lisatud padding animatsioon */
+            transition: max-height 0.3s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out;
             width: 80%;
             max-width: 700px;
             box-sizing: border-box;
@@ -105,16 +101,15 @@
             border-radius: 0 0 5px 5px;
         }
         .solution-panel {
-            background-color: #ffffff; /* Hoia valge taust */
+            background-color: #ffffff;
             font-size: 0.9em;
             color: #555;
-            /* border-top: 1px solid #eee; Võib lisada, kui soovid eraldusjoont paneeli sees */
         }
         .panel p, .solution-panel p {
             margin: 15px 0;
         }
         .solution-panel p {
-            margin: 10px 0; /* Väiksem marginaal lahenduse paneelis */
+            margin: 10px 0;
             padding-bottom: 5px;
         }
         #homeButton {
@@ -188,60 +183,80 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            function adjustParentPanelHeight(clickedButton) {
+                if (!clickedButton.classList.contains("solution-accordion")) {
+                    return;
+                }
+                const parentTaskPanel = clickedButton.closest('.panel');
+                if (parentTaskPanel) {
+                    if (parentTaskPanel.style.maxHeight && parentTaskPanel.style.maxHeight !== '0px') {
+                        requestAnimationFrame(() => {
+                            const newHeight = parentTaskPanel.scrollHeight + 2; // Väike varu
+                            parentTaskPanel.style.maxHeight = newHeight + "px";
+                        });
+                    }
+                }
+            }
+
             function initializeAccordion(buttonClassName, panelClassName) {
                 var accordions = document.getElementsByClassName(buttonClassName);
                 if (accordions.length === 0) {
-                    console.warn("Akordioni nuppe klassiga '" + buttonClassName + "' ei leitud.");
+                    // console.warn("Akordioni nuppe klassiga '" + buttonClassName + "' ei leitud.");
                     return;
                 }
 
                 for (let i = 0; i < accordions.length; i++) {
                     accordions[i].addEventListener("click", function() {
                         this.classList.toggle("active");
-                        var panel = this.nextElementSibling;
+                        var currentPanel = this.nextElementSibling;
 
-                        // Kontrolli, et paneel eksisteerib ja on õiget tüüpi
-                        if (!panel || !panel.classList.contains(panelClassName.substring(1))) {
-                            console.error("Akordioni paneeli ei leitud nupu jaoks:", this, "Oodati klassi:", panelClassName.substring(1));
-                            return; // Kui paneeli ei leitud, ära jätka
+                        if (!currentPanel || !currentPanel.classList.contains(panelClassName.substring(1))) {
+                            // console.error("Akordioni paneeli ei leitud nupu jaoks:", this, "Oodati klassi:", panelClassName.substring(1));
+                            return;
                         }
                         
-                        // Kui paneel on avatud (maxHeight on määratud ja pole "0px")
-                        if (panel.style.maxHeight && panel.style.maxHeight !== "0px") {
-                            panel.style.maxHeight = null; // Sulge paneel
-                            panel.style.paddingTop = null; // Eemalda padding animatsiooniks
-                            panel.style.paddingBottom = null;
-                        } else { // Paneel on suletud, ava see
-                            // Lisa padding enne scrollHeight arvutamist, et see oleks korrektne
-                            panel.style.paddingTop = "18px"; // Või mis iganes su CSS-is on
-                            panel.style.paddingBottom = "18px";
+                        const isCurrentlyOpen = currentPanel.style.maxHeight && currentPanel.style.maxHeight !== "0px";
 
-                            // Kontrolli, kas MathJax on laetud ja valmis
+                        if (isCurrentlyOpen) { // Paneel on avatud, sulge see
+                            currentPanel.style.maxHeight = null;
+                            currentPanel.style.paddingTop = null;
+                            currentPanel.style.paddingBottom = null;
+                            
+                            setTimeout(() => { // Anna CSS transitsioonile aega
+                                adjustParentPanelHeight(this);
+                            }, 300); // See aeg peaks vastama CSS transitsiooni ajale (max-height 0.3s)
+
+                        } else { // Paneel on suletud, ava see
+                            currentPanel.style.paddingTop = "18px"; 
+                            currentPanel.style.paddingBottom = "18px";
+
+                            const openAndAdjust = () => {
+                                requestAnimationFrame(() => {
+                                    currentPanel.style.maxHeight = (currentPanel.scrollHeight + 2) + "px"; // Väike varu
+                                    adjustParentPanelHeight(this);
+                                });
+                            };
+
                             if (typeof MathJax !== "undefined" && MathJax.startup && MathJax.startup.promise) {
                                 MathJax.startup.promise.then(() => {
-                                    // Töötle matemaatikat paneeli sees
-                                    return MathJax.typesetPromise([panel]);
+                                    return MathJax.typesetPromise([currentPanel]);
                                 }).then(() => {
-                                    // Pärast matemaatika töötlemist määra maxHeight
-                                    panel.style.maxHeight = panel.scrollHeight + "px";
+                                    openAndAdjust();
                                 }).catch(err => {
-                                    console.error('MathJax viga paneeli töötlemisel:', panel, err);
-                                    // Varulahendus: määra kõrgus ikkagi, isegi kui MathJax ebaõnnestus
-                                    panel.style.maxHeight = panel.scrollHeight + "px";
+                                    // console.error('MathJax viga paneeli töötlemisel:', currentPanel, err);
+                                    openAndAdjust(); 
                                 });
                             } else {
-                                // MathJax pole valmis või laetud
-                                console.warn("MathJax pole valmis. LaTeX valemid ei pruugi korrektselt renderduda.");
-                                panel.style.maxHeight = panel.scrollHeight + "px";
+                                // console.warn("MathJax pole valmis.");
+                                openAndAdjust();
                             }
                         }
                     });
                 }
             }
 
-            // Initsialiseeri peamised akordionid
             initializeAccordion("accordion", ".panel");
-            // Initsialiseeri lahenduskäikude akordionid
             initializeAccordion("solution-accordion", ".solution-panel");
         });
     </script>
