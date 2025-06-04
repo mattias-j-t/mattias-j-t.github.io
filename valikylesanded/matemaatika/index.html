@@ -7,12 +7,12 @@
     <script>
       window.MathJax = {
         tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']], // Määrab inline matemaatika eraldajad
-          displayMath: [['$$', '$$'], ['\\[', '\\]']] // Määrab display matemaatika eraldajad
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
         },
         startup: {
           ready: () => {
-            console.log('MathJax is ready and has started.');
+            // console.log('MathJax is ready and has started.');
             MathJax.startup.defaultReady();
           }
         }
@@ -67,10 +67,10 @@
             border-top: 1px dashed #cce7ff;
             margin-top: 10px;
         }
-        .active, .accordion:hover {
+        .accordion.active, .accordion:hover { /* Pealkirja aktiivne ja hover stiil */
             background-color: #e2e2e2;
         }
-        .solution-accordion.active, .solution-accordion:hover {
+        .solution-accordion.active, .solution-accordion:hover { /* Lahenduse nupu aktiivne ja hover stiil */
             background-color: #d8edff;
         }
         .accordion:after, .solution-accordion:after {
@@ -78,17 +78,20 @@
             font-size: 0.8em;
             color: #777;
             margin-left: 5px;
-            transition: transform 0.4s ease;
+            transition: transform 0.3s ease-out; /* Muudetud animatsiooni kestust */
         }
         .solution-accordion:after {
             color: #007bff;
         }
-        .active:after {
+        .accordion.active:after, .solution-accordion.active:after { /* Ühtlustatud aktiivse ikooni stiil */
             content: '\2796'; /* Miinusmärk */
-            /* transform: rotate(180deg); // Võid lisada, kui soovid keerlevat efekti */
+            transform: rotate(180deg); /* Pöörame ikooni, et oleks selgem */
         }
         .panel, .solution-panel {
-            padding: 0 18px; /* Algne vertikaalne padding 0, kui suletud */
+            padding-left: 18px;  /* Horisontaalne padding jääb alles */
+            padding-right: 18px;
+            padding-top: 0;    /* Vertikaalne padding algselt 0 */
+            padding-bottom: 0;
             background-color: white;
             max-height: 0;
             overflow: hidden;
@@ -96,21 +99,28 @@
             width: 80%;
             max-width: 700px;
             box-sizing: border-box;
-            border-bottom: 1px solid #eee;
+            /* border-bottom eemaldatud siit, et vältida topeltjoont, kui .accordion juba on */
+            /* Selle asemel on .accordionil border-bottom, ja viimasel .panelil võib olla eraldi stiil, kui vaja */
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-radius: 0 0 5px 5px;
+            border-radius: 0 0 5px 5px; /* Ainult alumised nurgad ümarad */
+        }
+        .panel { /* Peamise paneeli alumine border */
+             border-bottom: 1px solid #ddd;
         }
         .solution-panel {
             background-color: #ffffff;
             font-size: 0.9em;
             color: #555;
+            border-top: 1px solid #eee; /* Eraldusjoon lahenduskäigu ja ülesande teksti vahel */
+            border-bottom: 1px solid #ddd; /* Lahenduspaneeli alumine border */
         }
         .panel p, .solution-panel p {
-            margin: 15px 0;
+            margin-top: 15px; /* Esimene p paneelis */
+            margin-bottom: 15px; /* Viimane p paneelis */
         }
         .solution-panel p {
-            margin: 10px 0;
-            padding-bottom: 5px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
         #homeButton {
             position: fixed;
@@ -184,80 +194,115 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            function adjustParentPanelHeight(clickedButton) {
-                if (!clickedButton.classList.contains("solution-accordion")) {
-                    return;
-                }
-                const parentTaskPanel = clickedButton.closest('.panel');
+            // Funktsioon vanema .panel elemendi kõrguse kohandamiseks, kui lahenduskäik avaneb/sulbub
+            function adjustParentPanelHeight(solutionButton) {
+                const parentTaskPanel = solutionButton.closest('.panel');
                 if (parentTaskPanel) {
-                    if (parentTaskPanel.style.maxHeight && parentTaskPanel.style.maxHeight !== '0px') {
+                    if (parentTaskPanel.style.maxHeight && parentTaskPanel.style.maxHeight !== '0px') { // Kontrolli, et vanem on avatud
                         requestAnimationFrame(() => {
-                            const newHeight = parentTaskPanel.scrollHeight + 2; // Väike varu
+                            const newHeight = parentTaskPanel.scrollHeight + 5; // Väike varu probleemide vältimiseks
                             parentTaskPanel.style.maxHeight = newHeight + "px";
+                            // console.log("Adjusted parent panel:", parentTaskPanel.previousElementSibling.textContent, "to new maxHeight:", newHeight + "px");
                         });
                     }
                 }
             }
 
             function initializeAccordion(buttonClassName, panelClassName) {
-                var accordions = document.getElementsByClassName(buttonClassName);
-                if (accordions.length === 0) {
-                    // console.warn("Akordioni nuppe klassiga '" + buttonClassName + "' ei leitud.");
-                    return;
-                }
+                const accordions = document.getElementsByClassName(buttonClassName);
+                if (accordions.length === 0) { return; }
 
                 for (let i = 0; i < accordions.length; i++) {
                     accordions[i].addEventListener("click", function() {
-                        this.classList.toggle("active");
-                        var currentPanel = this.nextElementSibling;
+                        const currentButton = this;
+                        const currentPanel = currentButton.nextElementSibling;
 
                         if (!currentPanel || !currentPanel.classList.contains(panelClassName.substring(1))) {
-                            // console.error("Akordioni paneeli ei leitud nupu jaoks:", this, "Oodati klassi:", panelClassName.substring(1));
+                            // console.error("Paneeli ei leitud nupu jaoks:", currentButton);
                             return;
                         }
-                        
-                        const isCurrentlyOpen = currentPanel.style.maxHeight && currentPanel.style.maxHeight !== "0px";
 
-                        if (isCurrentlyOpen) { // Paneel on avatud, sulge see
+                        const isTargetPanelCurrentlyOpen = currentPanel.style.maxHeight && currentPanel.style.maxHeight !== "0px";
+
+                        // 1. EKSKLUSIIVNE AVAMINE PEA-AKORDIONIDELE (.accordion)
+                        if (!isTargetPanelCurrentlyOpen && buttonClassName === "accordion") {
+                            document.querySelectorAll('.accordion').forEach(otherButton => {
+                                if (otherButton !== currentButton) {
+                                    const otherPanel = otherButton.nextElementSibling;
+                                    if (otherPanel && otherPanel.style.maxHeight && otherPanel.style.maxHeight !== "0px") { // Kui on avatud
+                                        otherButton.classList.remove('active');
+                                        otherPanel.style.maxHeight = null;
+                                        otherPanel.style.paddingTop = null;
+                                        otherPanel.style.paddingBottom = null;
+
+                                        // Sulge ka selle sees olev lahenduskäik, kui see oli avatud
+                                        const nestedSolutionButton = otherPanel.querySelector('.solution-accordion');
+                                        const nestedSolutionPanel = otherPanel.querySelector('.solution-panel');
+                                        if (nestedSolutionButton && nestedSolutionPanel && nestedSolutionPanel.style.maxHeight && nestedSolutionPanel.style.maxHeight !== "0px") {
+                                            nestedSolutionButton.classList.remove('active');
+                                            nestedSolutionPanel.style.maxHeight = null;
+                                            nestedSolutionPanel.style.paddingTop = null;
+                                            nestedSolutionPanel.style.paddingBottom = null;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // 2. SIHTPANEELI (currentPanel) AVAMINE VÕI SULGEMINE
+                        if (isTargetPanelCurrentlyOpen) { // Sulge sihtpaneel
+                            currentButton.classList.remove('active');
                             currentPanel.style.maxHeight = null;
                             currentPanel.style.paddingTop = null;
                             currentPanel.style.paddingBottom = null;
-                            
-                            setTimeout(() => { // Anna CSS transitsioonile aega
-                                adjustParentPanelHeight(this);
-                            }, 300); // See aeg peaks vastama CSS transitsiooni ajale (max-height 0.3s)
 
-                        } else { // Paneel on suletud, ava see
-                            currentPanel.style.paddingTop = "18px"; 
+                            if (currentButton.classList.contains("solution-accordion")) {
+                                // Viivitus vanema kohandamiseks, et lahenduskäigu sulgemise animatsioon jõuaks lõppeda
+                                setTimeout(() => { adjustParentPanelHeight(currentButton); }, 300); // Aeg vastab CSS transitsioonile
+                            } else { // Kui suletakse pea-paneel, veendu, et selle lahenduskäik on ka kinni
+                                const nestedSolutionButton = currentPanel.querySelector('.solution-accordion');
+                                const nestedSolutionPanel = currentPanel.querySelector('.solution-panel');
+                                if (nestedSolutionButton && nestedSolutionPanel) {
+                                    nestedSolutionButton.classList.remove('active');
+                                    nestedSolutionPanel.style.maxHeight = null;
+                                    nestedSolutionPanel.style.paddingTop = null;
+                                    nestedSolutionPanel.style.paddingBottom = null;
+                                }
+                            }
+                        } else { // Ava sihtpaneel
+                            currentButton.classList.add('active');
+                            currentPanel.style.paddingTop = "18px"; // Taasta padding avamisel
                             currentPanel.style.paddingBottom = "18px";
 
-                            const openAndAdjust = () => {
+                            const setHeightAndAdjust = () => {
                                 requestAnimationFrame(() => {
-                                    currentPanel.style.maxHeight = (currentPanel.scrollHeight + 2) + "px"; // Väike varu
-                                    adjustParentPanelHeight(this);
+                                    currentPanel.style.maxHeight = (currentPanel.scrollHeight + 5) + "px"; // Väike varu
+                                    
+                                    if (currentButton.classList.contains("solution-accordion")) {
+                                        // Viivitus vanema kohandamiseks, et lahenduskäigu avanemise animatsioon jõuaks lõppeda
+                                        setTimeout(() => { adjustParentPanelHeight(currentButton); }, 300); // Aeg vastab CSS transitsioonile
+                                    }
                                 });
                             };
 
-                            if (typeof MathJax !== "undefined" && MathJax.startup && MathJax.startup.promise) {
-                                MathJax.startup.promise.then(() => {
-                                    return MathJax.typesetPromise([currentPanel]);
-                                }).then(() => {
-                                    openAndAdjust();
+                            if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
+                                MathJax.typesetPromise([currentPanel]).then(() => {
+                                    setHeightAndAdjust();
                                 }).catch(err => {
-                                    // console.error('MathJax viga paneeli töötlemisel:', currentPanel, err);
-                                    openAndAdjust(); 
+                                    // console.error('MathJax viga:', err);
+                                    setHeightAndAdjust(); // Proovi kõrgust seada ka vea korral
                                 });
                             } else {
-                                // console.warn("MathJax pole valmis.");
-                                openAndAdjust();
+                                // console.warn('MathJax.typesetPromise pole saadaval.');
+                                setHeightAndAdjust();
                             }
                         }
                     });
                 }
             }
 
-            initializeAccordion("accordion", ".panel");
-            initializeAccordion("solution-accordion", ".solution-panel");
+            initializeAccordion("accordion", ".panel"); // Pea-akordionid
+            initializeAccordion("solution-accordion", ".solution-panel"); // Lahenduskäikude akordionid
         });
     </script>
 
