@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minu Isiklik Veebileht</title>
+  
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS muuutujad lihtsamaks haldamiseks */
+     
         :root {
-            --primary-color: #3498db; /* Hele sinine */
-            --secondary-color: #2c3e50; /* Tume sinakashall */
-            --text-color: #333; /* Tumehall tekst */
-            --background-color: #f4f7f6; /* Hele taust */
-            --light-gray: #ecf0f1; /* Väga hele hall */
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50; 
+            --text-color: #333; 
+            --background-color: #f4f7f6;
+            --light-gray: #ecf0f1;
             --border-radius: 5px;
         }
 
-        /* Üldised stiilid */
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
@@ -57,25 +56,25 @@
             background-color: rgba(255, 255, 255, 0.1);
             padding: 10px;
             border-radius: var(--border-radius);
-            display: inline-block; /* Hoiab vidina koos */
+            display: inline-block; 
         }
 
         .time-widget-container a,
         .time-widget-container span {
-            color: white !important; /* Tagab, et tekst on valge */
-            font-size: 28px !important; /* Veidi väiksem font päises */
+            color: white !important;
+            font-size: 28px !important; 
             text-decoration: none !important;
         }
 
-        /* Põhisisu ja külgriba paigutus */
+      
         .main-layout {
             display: flex;
-            flex-grow: 1; /* Võtab ülejäänud kõrguse */
-            gap: 20px; /* Vahe sisu ja külgriba vahel */
+            flex-grow: 1; 
+            gap: 20px; 
         }
 
         .content {
-            flex: 3; /* Sisu võtab rohkem ruumi */
+            flex: 3; 
             background-color: white;
             padding: 30px;
             border-radius: var(--border-radius);
@@ -83,7 +82,7 @@
         }
 
         .sidebar {
-            flex: 1; /* Külgriba võtab vähem ruumi */
+            flex: 1; 
             background-color: var(--light-gray);
             padding: 20px;
             border-radius: var(--border-radius);
@@ -112,7 +111,7 @@
             color: var(--primary-color);
             font-weight: 500;
             transition: color 0.3s ease;
-            display: block; /* Teeb lingi klikitavaks üle terve rea */
+            display: block; 
             padding: 5px 0;
         }
 
@@ -131,7 +130,7 @@
             margin-bottom: 15px;
         }
 
-        /* Kontakt sektsioon */
+  
         .contact-section {
             margin-top: 40px;
             border-top: 1px solid var(--light-gray);
@@ -167,24 +166,24 @@
             box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
         }
 
-        /* Responsiveness (Mobiilile optimeerimine) */
+    
         @media (max-width: 768px) {
             .main-layout {
-                flex-direction: column; /* Virnasta elemendid mobiilis üksteise alla */
+                flex-direction: column; 
             }
 
             .sidebar {
-                order: -1; /* Paiguta külgriba sisu ette, kui mobiilis on menüü ülal */
+                order: -1; 
                 margin-bottom: 20px;
             }
 
             .time-widget-container a,
             .time-widget-container span {
-                font-size: 22px !important; /* Väiksem font mobiilis */
+                font-size: 22px !important; 
             }
 
             .content, .sidebar {
-                padding: 20px; /* Väiksemad paddingud mobiilis */
+                padding: 20px; 
             }
         }
 
@@ -195,7 +194,7 @@
 
             .time-widget-container a,
             .time-widget-container span {
-                font-size: 18px !important; /* Veel väiksem font väga väikestel ekraanidel */
+                font-size: 18px !important; 
             }
 
             .content {
@@ -207,8 +206,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Minu Isiklik Veebileht</h1>
-            <p>Tere tulemast minu veebilehele!</p>
+
             <div class="time-widget-container">
                 <a href="https://time.is/Tallinn" id="time_is_link" rel="nofollow" style="font-size:36px">‎‎‎</a>
                 <span id="Tallinn_z72b" style="font-size:36px"></span>
@@ -225,12 +223,9 @@
                 </section>
 
                 <section class="contact-section">
-                    <h2>Kontakt</h2>
+                    <h2></h2> <!--siin oli "Kontakt -->
                     <ul>
-                        <li><strong>E-post:</strong> <a href="mailto:sinu.email@example.com">sinu.email@example.com</a></li>
-                        <li><strong>Telefon:</strong> +372 123 4567</li>
-                        <li><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/sinu-profiil/" target="_blank">linkedin.com/in/sinu-profiil</a></li>
-                        <li><strong>GitHub:</strong> <a href="https://github.com/sinu-kasutajanimi" target="_blank">github.com/sinu-kasutajanimi</a></li>
+                        <li><strong>GitHub:</strong> <a href="https://github.com/mattias-j-t" target="_blank">github.com/mattias-j-t</a></li>
                     </ul>
                 </section>
             </main>
@@ -238,17 +233,14 @@
             <aside class="sidebar">
                 <h3>Leheosad</h3>
                 <ul>
-                    <li><a href="about.html">Minust</a></li>
-                    <li><a href="projects.html">Projektid</a></li>
-                    <li><a href="skills.html">Oskused</a></li>
-                    <li><a href="blog.html">Blogi</a></li>
-                    <li><a href="gallery.html">Galerii</a></li>
+                    <li><a href="/hinded/index.html">Hinnete kalkulaator</a></li>
+
                 </ul>
             </aside>
         </div>
 
         <footer>
-            <p>&copy; abcdefghijklmnop</p>
+            <p>&copy;2025</p>
         </footer>
     </div>
 
