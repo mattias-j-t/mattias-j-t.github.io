@@ -14,6 +14,10 @@
             margin: 20px;
             background-color: #f4f4f4;
             color: #333;
+            display: flex; /* Kasutame Flexboxi body elemendil */
+            flex-direction: column; /* Paigutame elemendid veergu */
+            align-items: center; /* Horisontaalne tsentreerimine */
+            min-height: 100vh; /* Kogu vaateakna kõrgus */
         }
         h1 {
             text-align: center;
@@ -21,14 +25,14 @@
             margin-bottom: 30px;
         }
 
-        /* Akordioni stiilid */
+        /* Akordioni stiilid (põhiülesande kastid) */
         .accordion {
             background-color: #f9f9f9;
             color: #444;
             cursor: pointer;
             padding: 18px;
-            width: 80%; /* Anname akordionile laiuse */
-            max-width: 700px; /* Piirame maksimaalset laiust */
+            width: 80%; /* Akordioni laius */
+            max-width: 700px; /* Maksimaalne laius */
             border: none;
             text-align: left;
             outline: none;
@@ -38,8 +42,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Kaasa padding ja border laiusesse */
             margin-top: 10px; /* Annab akordionide vahele ruumi */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Natuke varju */
+            border-radius: 5px; /* Ümarad nurgad */
         }
 
         .active, .accordion:hover {
@@ -57,7 +63,6 @@
 
         .active:after {
             content: '\2796'; /* Miinusmärk */
-            /* transform: rotate(0deg); Eemaldame pöörde, miinus on juba õiges asendis */
         }
 
         .panel {
@@ -70,13 +75,15 @@
             max-width: 700px; /* Sama laius mis akordionil */
             box-sizing: border-box;
             border-bottom: 1px solid #eee;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sama vari */
+            border-radius: 0 0 5px 5px; /* Ümarad alumised nurgad */
         }
 
         .panel p {
             margin: 15px 0;
         }
 
-        /* Lahenduskäigu nupu stiilid */
+        /* Lahenduskäigu nupu stiilid (sisemised nupud) */
         .solution-accordion {
             background-color: #eaf6ff; /* Heledam sinine */
             color: #007bff;
@@ -94,6 +101,7 @@
             align-items: center;
             box-sizing: border-box;
             margin-top: 10px; /* Annab ruumi ülesande teksti ja lahenduse vahele */
+            border-radius: 5px; /* Ümarad nurgad ka lahenduse nupul */
         }
         .solution-accordion:hover {
             background-color: #d8edff;
@@ -121,13 +129,14 @@
             border-bottom: 1px solid #ddd;
             font-size: 0.9em;
             color: #555;
+            border-radius: 0 0 5px 5px; /* Ümarad alumised nurgad */
         }
         .solution-panel p {
              margin: 10px 0;
              padding-bottom: 5px;
         }
 
-        /* Fikseeritud nuppude stiilid */
+        /* Fikseeritud nuppude stiilid (Tagasi pealehele) */
         #homeButton {
             position: fixed;
             top: 10px;
@@ -208,7 +217,12 @@
                 if (panel.style.maxHeight) {
                     panel.style.maxHeight = null;
                 } else {
-                    panel.style.maxHeight = panel.scrollHeight + "px";
+                    // Määra max-height dünaamiliselt, et sisu mahuks ära
+                    // Väike viivitus annab MathJaxile aega valemite renderdamiseks,
+                    // enne kui scrollHeight'i väärtus arvutatakse.
+                    setTimeout(() => {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    }, 50);
                 }
             });
         }
@@ -222,7 +236,10 @@
                 if (solutionPanel.style.maxHeight) {
                     solutionPanel.style.maxHeight = null;
                 } else {
-                    solutionPanel.style.maxHeight = solutionPanel.scrollHeight + "px";
+                    // Sama viivitus MathJaxi jaoks ka siin
+                    setTimeout(() => {
+                        solutionPanel.style.maxHeight = solutionPanel.scrollHeight + "px";
+                    }, 50);
                 }
             });
         }
