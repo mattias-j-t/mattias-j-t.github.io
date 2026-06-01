@@ -68,6 +68,21 @@
         </div>
 
         <button id="s-btn">Alusta</button>
+
+        <h3>Globaalne edetabel</h3>
+        <div class="tbl-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nimi</th>
+                        <th>Keskmine</th>
+                        <th>Kokku</th>
+                        <th>Küsimusi</th>
+                    </tr>
+                </thead>
+                <tbody id="l-body-start"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="g-view" class="hidden">
@@ -174,13 +189,18 @@
                     <td>${i.qst}</td>
                 </tr>`;
             });
-            document.getElementById("l-body").innerHTML = h;
+            let e1 = document.getElementById("l-body");
+            let e2 = document.getElementById("l-body-start");
+            if(e1) e1.innerHTML = h;
+            if(e2) e2.innerHTML = h;
         }).catch(e => console.error(e));
     };
+
+    loadL();
 </script>
 
 <script>
-    let r = 4.25; // konstant 1 EUR = r PLN, kui on offline vms
+    let r = 4.25;
     let m = "e2p";
     let t, c, s, a, u, q, g = "";
     let l = [];
