@@ -183,12 +183,12 @@ textarea { resize: vertical; }
 .stack span { color: var(--text-muted); font-size: 12px; }
 
 /* Kuuvaade --------------------------------------------------------------- */
-.weekday-row { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--bg); border-bottom: 1px solid var(--border); }
+.weekday-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--bg); border-bottom: 1px solid var(--border); }
 .weekday-row div { padding: 8px; font-size: 12px; font-weight: 500; color: var(--text-muted); text-align: center; text-transform: uppercase; }
 
-.month-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .day {
-  position: relative; min-height: 108px; padding: 4px 5px 6px;
+  position: relative; min-width: 0; min-height: 108px; padding: 4px 5px 6px;
   border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 3px; cursor: pointer; user-select: none;
   background: var(--surface);
@@ -200,6 +200,8 @@ textarea { resize: vertical; }
 .day-num { font-size: 13px; font-weight: 500; align-self: flex-start; padding: 1px 6px; border-radius: 999px; }
 .day.today .day-num { background: var(--primary); color: #fff; }
 .day-weekend { background: #fcfdfe; }
+/* Pikk sündmuse nimi ei tohi lahtri veergu laiemaks suruda. */
+.day > * { min-width: 0; max-width: 100%; }
 
 .period-bands { display: flex; flex-direction: column; gap: 2px; }
 .period-band {
@@ -214,6 +216,8 @@ textarea { resize: vertical; }
   background: var(--bg); cursor: pointer;
 }
 .chip:hover { filter: brightness(.97); }
+.chip > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.chip > time { flex: 0 0 auto; }
 .chip .dot { width: 7px; height: 7px; flex: 0 0 7px; }
 .chip.filled { color: #fff; }
 .chip time { opacity: .8; font-variant-numeric: tabular-nums; }
