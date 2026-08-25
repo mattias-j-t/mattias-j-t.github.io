@@ -7,5 +7,6 @@
 //
 // ÄRA kunagi pane siia service_role võtit ega andmebaasi parooli.
 
-export const SUPABASE_URL = "";
-export const SUPABASE_ANON_KEY = "";
+export const SUPABASE_URL = "https://wwspiensktagtjhhbeir.supabase.co";
+export const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3c3BpZW5za3RhZ3RqaGhiZWlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTg3OTAsImV4cCI6MjEwMzIzNDc5MH0.Kdao5K62iWNNATXisnjZN2hqaT36JJGWTDKi_B56_kA";
