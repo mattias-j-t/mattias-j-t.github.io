@@ -273,7 +273,8 @@ textarea { resize: vertical; }
 }
 
 @media (max-width: 900px) {
-  .layout { flex-direction: column; }
+  /* Ühes tulbas peavad lapsed venima laiuses, muidu kasvab kalender üle ekraani. */
+  .layout { flex-direction: column; align-items: stretch; }
   .sidebar { width: 100%; flex: 1 1 auto; }
   .day { min-height: 76px; }
   .range-title { font-size: 16px; }
