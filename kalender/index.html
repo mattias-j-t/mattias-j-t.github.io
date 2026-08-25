@@ -114,23 +114,29 @@
 
     <div class="row">
       <div>
-        <label for="event-start">Algus</label>
-        <input id="event-start" type="datetime-local" required>
+        <label for="event-start-date">Algus</label>
+        <div class="datetime">
+          <input id="event-start-date" type="text" required>
+          <input id="event-start-time" type="text" required>
+        </div>
       </div>
       <div>
-        <label for="event-end">Lõpp</label>
-        <input id="event-end" type="datetime-local" required>
+        <label for="event-end-date">Lõpp</label>
+        <div class="datetime">
+          <input id="event-end-date" type="text" required>
+          <input id="event-end-time" type="text" required>
+        </div>
       </div>
     </div>
 
     <div class="row">
       <div>
         <label for="event-startdate">Algus</label>
-        <input id="event-startdate" type="date">
+        <div class="datetime"><input id="event-startdate" type="text"></div>
       </div>
       <div>
         <label for="event-enddate">Lõpp</label>
-        <input id="event-enddate" type="date">
+        <div class="datetime"><input id="event-enddate" type="text"></div>
       </div>
     </div>
 
@@ -168,11 +174,11 @@
     <div class="row">
       <div>
         <label for="period-start">Esimene päev</label>
-        <input id="period-start" type="date" required>
+        <div class="datetime"><input id="period-start" type="text" required></div>
       </div>
       <div>
         <label for="period-end">Viimane päev</label>
-        <input id="period-end" type="date" required>
+        <div class="datetime"><input id="period-end" type="text" required></div>
       </div>
     </div>
 
@@ -193,7 +199,7 @@
       <button id="cycle-add" class="btn small" type="button">+ Lisa tsükli värv</button>
 
       <label for="period-until">Korda kuni</label>
-      <input id="period-until" type="date">
+      <div class="datetime"><input id="period-until" type="text"></div>
     </div>
 
     <p class="message hidden" id="period-message"></p>

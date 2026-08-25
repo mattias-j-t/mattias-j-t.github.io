@@ -74,6 +74,23 @@ textarea { resize: vertical; }
 .row { display: flex; gap: 12px; }
 .row > div { flex: 1; min-width: 0; }
 
+/* Kuupäev pp/kk/aaaa ja kellaaeg tt:mm tekstiväljadena. */
+.datetime { position: relative; display: flex; align-items: center; gap: 6px; }
+.datetime input[type="text"] { min-width: 0; font-variant-numeric: tabular-nums; }
+.datefield { flex: 1 1 0; }
+.timefield { flex: 0 0 5.5em; }
+.datetime input.invalid { border-color: var(--danger); }
+.field-picker {
+  position: absolute; width: 1px; height: 1px; padding: 0; border: 0;
+  opacity: 0; pointer-events: none;
+}
+.field-picker-btn {
+  flex: 0 0 auto; width: 34px; height: 36px; padding: 0; line-height: 1;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; font-size: 15px;
+}
+.field-picker-btn:hover { background: var(--bg); }
+
 .tabs { display: flex; gap: 6px; background: var(--bg); padding: 4px; border-radius: 10px; }
 .tab {
   flex: 1; padding: 8px; border: 0; border-radius: 8px; cursor: pointer;

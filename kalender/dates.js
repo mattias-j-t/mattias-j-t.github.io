@@ -85,18 +85,6 @@ export function hhmm(date) {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-// <input type="datetime-local"> väärtus kohalikus ajas.
-export function toLocalInput(date) {
-  return `${ymd(date)}T${hhmm(date)}`;
-}
-
-export function fromLocalInput(value) {
-  const [datePart, timePart = "00:00"] = String(value).split("T");
-  const [y, m, d] = datePart.split("-").map(Number);
-  const [hh, mm] = timePart.split(":").map(Number);
-  return new Date(y, m - 1, d, hh, mm, 0, 0);
-}
-
 export function formatMonthTitle(date) {
   return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
