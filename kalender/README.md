@@ -35,6 +35,9 @@ Kui `config.js` on tühi, näitab leht seadistuse hoiatust.
 
 ## Kasutamine
 
+- **Kuupäevad ja kellaajad**: sisestus on alati kujul `pp/kk/aaaa` ja 24-tunnine
+  `tt:mm`, sõltumata brauseri keelest. Kaldkriipsud ja koolon tekivad ise, kui
+  kirjutad ainult numbrid; kalendrinupp kõrval avab valija.
 - **Vaated**: Kuu / Nädal / Loend. Nooleklahvid liiguvad ajas, `T` = täna,
   `M`/`W`/`A` = vaated, `N` = uus sündmus.
 - **Sündmus**: klõps päeval (kuuvaates) või nupp „+ Sündmus“. Saab määrata
@@ -56,5 +59,6 @@ Kui `config.js` on tühi, näitab leht seadistuse hoiatust.
 | `data.js` | Supabase klient ja päringud |
 | `periods.js` | Perioodide/tsüklite laiendamine kalendripäevadeks |
 | `dates.js` | Kuupäevaabilised |
+| `fields.js` | `pp/kk/aaaa` ja `tt:mm` sisestusväljad |
 | `config.js` | Supabase URL + anon võti |
 | `schema.sql` | Tabelid, triggerid ja RLS poliitikad |

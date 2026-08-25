@@ -3,9 +3,12 @@
 import * as api from "./data.js";
 import {
   WEEKDAYS, addDays, addMonths, diffDays, endOfDay, formatDayLong,
-  formatMonthTitle, formatRange, fromLocalInput, hhmm, isToday, monthGridDays,
-  parseYmd, sameDay, startOfDay, startOfWeek, toLocalInput, weekDays, ymd,
+  formatMonthTitle, formatRange, hhmm, isToday, monthGridDays,
+  parseYmd, sameDay, startOfDay, startOfWeek, weekDays, ymd,
 } from "./dates.js";
+import {
+  getDate, initDateInput, initTimeInput, readDateTime, setDate, setTime,
+} from "./fields.js";
 
 const PALETTE = [
   "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
@@ -460,10 +463,11 @@ let editingEvent = null;
 
 function syncEventAllDay() {
   const allDay = $("event-allday").checked;
-  $("event-start").parentElement.parentElement.classList.toggle("hidden", allDay);
-  $("event-startdate").parentElement.parentElement.classList.toggle("hidden", !allDay);
-  $("event-start").required = !allDay;
-  $("event-end").required = !allDay;
+  $("event-start-date").closest(".row").classList.toggle("hidden", allDay);
+  $("event-startdate").closest(".row").classList.toggle("hidden", !allDay);
+  for (const id of ["event-start-date", "event-start-time", "event-end-date", "event-end-time"]) {
+    $(id).required = !allDay;
+  }
   $("event-startdate").required = allDay;
   $("event-enddate").required = allDay;
 }
@@ -483,10 +487,12 @@ function openEventDialog(event, day = null, allDay = false) {
   $("event-description").value = event?.description ?? "";
   $("event-color").value = event?.color ?? PALETTE[0];
   $("event-allday").checked = event ? event.all_day : allDay;
-  $("event-start").value = toLocalInput(base);
-  $("event-end").value = toLocalInput(end);
-  $("event-startdate").value = ymd(base);
-  $("event-enddate").value = ymd(end);
+  setDate($("event-start-date"), base);
+  setTime($("event-start-time"), base);
+  setDate($("event-end-date"), end);
+  setTime($("event-end-time"), end);
+  setDate($("event-startdate"), base);
+  setDate($("event-enddate"), end);
   buildSwatches($("event-swatches"), $("event-color"));
   syncEventAllDay();
 
@@ -503,17 +509,19 @@ async function submitEvent(formEvent) {
   let startsAt;
   let endsAt;
   if (allDay) {
-    if (!$("event-startdate").value || !$("event-enddate").value) {
-      return showMessage($("event-message"), "Vali algus- ja lõpukuupäev.");
+    const from = getDate($("event-startdate"));
+    const to = getDate($("event-enddate"));
+    if (!from || !to) {
+      return showMessage($("event-message"), "Vali algus- ja lõpukuupäev kujul pp/kk/aaaa.");
     }
-    startsAt = startOfDay(parseYmd($("event-startdate").value));
-    endsAt = endOfDay(parseYmd($("event-enddate").value));
+    startsAt = startOfDay(parseYmd(from));
+    endsAt = endOfDay(parseYmd(to));
   } else {
-    if (!$("event-start").value || !$("event-end").value) {
-      return showMessage($("event-message"), "Vali algus- ja lõpuaeg.");
+    startsAt = readDateTime($("event-start-date"), $("event-start-time"));
+    endsAt = readDateTime($("event-end-date"), $("event-end-time"));
+    if (!startsAt || !endsAt) {
+      return showMessage($("event-message"), "Vali algus ja lõpp kujul pp/kk/aaaa ja tt:mm.");
     }
-    startsAt = fromLocalInput($("event-start").value);
-    endsAt = fromLocalInput($("event-end").value);
   }
   if (endsAt < startsAt) return showMessage($("event-message"), "Lõpp ei saa olla enne algust.");
 
@@ -572,8 +580,8 @@ function readCycleColors() {
 function syncPeriodCycle() {
   const repeats = $("period-repeats").checked;
   $("period-cycle").classList.toggle("hidden", !repeats);
-  const start = $("period-start").value;
-  const end = $("period-end").value;
+  const start = getDate($("period-start"));
+  const end = getDate($("period-end"));
   if (start && end) {
     $("period-length").textContent = String(Math.max(1, diffDays(parseYmd(start), parseYmd(end)) + 1));
   }
@@ -595,11 +603,11 @@ function openPeriodDialog(period, from = null, to = null) {
   const end = period ? parseYmd(period.end_date) : (to ?? start);
 
   $("period-name").value = period?.name ?? "";
-  $("period-start").value = ymd(start);
-  $("period-end").value = ymd(end);
+  setDate($("period-start"), start);
+  setDate($("period-end"), end);
   $("period-color").value = period?.color ?? PALETTE[4];
   $("period-repeats").checked = Boolean(period?.repeats);
-  $("period-until").value = period?.repeat_until ?? "";
+  setDate($("period-until"), period?.repeat_until ?? "");
   buildSwatches($("period-swatches"), $("period-color"));
 
   const steps = Array.isArray(period?.cycle_colors) ? period.cycle_colors : [];
@@ -614,11 +622,13 @@ async function submitPeriod(formEvent) {
   formEvent.preventDefault();
   const name = $("period-name").value.trim();
   if (!name) return showMessage($("period-message"), "Nimi on kohustuslik.");
-  if (!$("period-start").value || !$("period-end").value) {
-    return showMessage($("period-message"), "Vali perioodi algus ja lõpp.");
+  const startValue = getDate($("period-start"));
+  const endValue = getDate($("period-end"));
+  if (!startValue || !endValue) {
+    return showMessage($("period-message"), "Vali perioodi algus ja lõpp kujul pp/kk/aaaa.");
   }
-  const start = parseYmd($("period-start").value);
-  const end = parseYmd($("period-end").value);
+  const start = parseYmd(startValue);
+  const end = parseYmd(endValue);
   if (end < start) return showMessage($("period-message"), "Lõpp ei saa olla enne algust.");
 
   const repeats = $("period-repeats").checked;
@@ -626,7 +636,10 @@ async function submitPeriod(formEvent) {
   if (repeats && cycleColors.length < 1) {
     return showMessage($("period-message"), "Lisa vähemalt üks tsükli värv.");
   }
-  const until = $("period-until").value || null;
+  const until = getDate($("period-until")) || null;
+  if (repeats && $("period-until").value && !until) {
+    return showMessage($("period-message"), "„Korda kuni“ peab olema kujul pp/kk/aaaa.");
+  }
   if (repeats && until && parseYmd(until) < end) {
     return showMessage($("period-message"), "„Korda kuni“ peab olema perioodi lõpust hiljem.");
   }
@@ -722,6 +735,12 @@ function showScreen(name) {
 }
 
 function bindEvents() {
+  for (const id of ["event-start-date", "event-end-date", "event-startdate", "event-enddate",
+    "period-start", "period-end", "period-until"]) {
+    initDateInput($(id));
+  }
+  for (const id of ["event-start-time", "event-end-time"]) initTimeInput($(id));
+
   $("tab-signin").addEventListener("click", () => setAuthMode("signin"));
   $("tab-signup").addEventListener("click", () => setAuthMode("signup"));
   $("auth-form").addEventListener("submit", submitAuth);
