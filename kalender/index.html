@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalender</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="loading" class="screen center">
+  <div class="spinner" aria-hidden="true"></div>
+  <p>Laen kalendrit…</p>
+</div>
+
+<!-- Seadistuse hoiatus -->
+<div id="setup" class="screen center hidden">
+  <div class="card narrow">
+    <h1>Kalender pole veel seadistatud</h1>
+    <p>Faili <code>kalender/config.js</code> tuleb lisada Supabase projekti aadress
+       ja <code>anon</code> võti. Andmebaasi tabelid ja turvareeglid loob
+       <code>kalender/schema.sql</code>.</p>
+  </div>
+</div>
+
+<!-- Sisselogimine / registreerimine -->
+<div id="auth" class="screen center hidden">
+  <div class="card narrow">
+    <h1 class="brand">Kalender</h1>
+    <div class="tabs" role="tablist">
+      <button id="tab-signin" class="tab active" role="tab" type="button">Logi sisse</button>
+      <button id="tab-signup" class="tab" role="tab" type="button">Loo konto</button>
+    </div>
+
+    <form id="auth-form" autocomplete="on" novalidate>
+      <label for="auth-email">E-post</label>
+      <input id="auth-email" name="email" type="email" required autocomplete="email" placeholder="sina@näide.ee">
+
+      <label for="auth-password">Parool</label>
+      <input id="auth-password" name="password" type="password" required minlength="8"
+             autocomplete="current-password" placeholder="Vähemalt 8 tähemärki">
+
+      <div id="auth-password2-wrap" class="hidden">
+        <label for="auth-password2">Parool uuesti</label>
+        <input id="auth-password2" name="password2" type="password" minlength="8" autocomplete="new-password">
+      </div>
+
+      <p id="auth-message" class="message hidden"></p>
+
+      <button id="auth-submit" class="btn primary block" type="submit">Logi sisse</button>
+      <button id="auth-reset" class="btn link block" type="button">Unustasid parooli?</button>
+    </form>
+
+    <p class="fineprint">
+      Paroole ja sündmusi ei hoita selles GitHubi repos. Autentimise ja andmete
+      eest vastutab Supabase ning iga kasutaja näeb ainult enda kirjeid.
+    </p>
+  </div>
+</div>
+
+<!-- Rakendus -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="nav-prev" class="btn icon" type="button" title="Eelmine">‹</button>
+      <button id="nav-today" class="btn" type="button">Täna</button>
+      <button id="nav-next" class="btn icon" type="button" title="Järgmine">›</button>
+      <h1 id="range-title" class="range-title"></h1>
+    </div>
+    <div class="topbar-right">
+      <div class="viewswitch" role="tablist">
+        <button class="view-btn active" data-view="month" type="button">Kuu</button>
+        <button class="view-btn" data-view="week" type="button">Nädal</button>
+        <button class="view-btn" data-view="agenda" type="button">Loend</button>
+      </div>
+      <button id="new-event" class="btn primary" type="button">+ Sündmus</button>
+      <button id="new-period" class="btn" type="button">+ Periood</button>
+      <details class="usermenu">
+        <summary id="user-email" class="btn ghost"></summary>
+        <div class="usermenu-panel">
+          <button id="sign-out" class="btn link" type="button">Logi välja</button>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main id="calendar" class="calendar"></main>
+
+    <aside class="sidebar">
+      <section>
+        <h2>Perioodid</h2>
+        <p class="hint">Vali kuuvaates hiirega päevad, et märkida periood.</p>
+        <ul id="period-list" class="list"></ul>
+      </section>
+      <section>
+        <h2>Tulemas</h2>
+        <ul id="upcoming-list" class="list"></ul>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<!-- Sündmuse dialoog -->
+<dialog id="event-dialog" class="dialog">
+  <form id="event-form" method="dialog">
+    <h2 id="event-dialog-title">Uus sündmus</h2>
+
+    <label for="event-title">Pealkiri</label>
+    <input id="event-title" type="text" required maxlength="200">
+
+    <label class="checkline"><input id="event-allday" type="checkbox"> Terve päev</label>
+
+    <div class="row">
+      <div>
+        <label for="event-start">Algus</label>
+        <input id="event-start" type="datetime-local" required>
+      </div>
+      <div>
+        <label for="event-end">Lõpp</label>
+        <input id="event-end" type="datetime-local" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="event-startdate">Algus</label>
+        <input id="event-startdate" type="date">
+      </div>
+      <div>
+        <label for="event-enddate">Lõpp</label>
+        <input id="event-enddate" type="date">
+      </div>
+    </div>
+
+    <label for="event-location">Asukoht</label>
+    <input id="event-location" type="text" maxlength="200">
+
+    <label for="event-description">Märkmed</label>
+    <textarea id="event-description" rows="3" maxlength="5000"></textarea>
+
+    <label for="event-color">Värv</label>
+    <div class="colorrow">
+      <input id="event-color" type="color" value="#3498db">
+      <div id="event-swatches" class="swatches"></div>
+    </div>
+
+    <p class="message hidden" id="event-message"></p>
+
+    <div class="dialog-actions">
+      <button id="event-delete" class="btn danger" type="button">Kustuta</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" data-close>Loobu</button>
+      <button id="event-save" class="btn primary" type="submit">Salvesta</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Perioodi dialoog -->
+<dialog id="period-dialog" class="dialog">
+  <form id="period-form" method="dialog">
+    <h2 id="period-dialog-title">Uus periood</h2>
+
+    <label for="period-name">Nimi</label>
+    <input id="period-name" type="text" required maxlength="200">
+
+    <div class="row">
+      <div>
+        <label for="period-start">Esimene päev</label>
+        <input id="period-start" type="date" required>
+      </div>
+      <div>
+        <label for="period-end">Viimane päev</label>
+        <input id="period-end" type="date" required>
+      </div>
+    </div>
+
+    <label for="period-color">Värv</label>
+    <div class="colorrow">
+      <input id="period-color" type="color" value="#9b59b6">
+      <div id="period-swatches" class="swatches"></div>
+    </div>
+
+    <label class="checkline"><input id="period-repeats" type="checkbox"> Kordub tsüklina</label>
+
+    <div id="period-cycle" class="cyclebox hidden">
+      <p class="hint">
+        Perioodi pikkus (<span id="period-length">14</span> päeva) on ühe bloki pikkus.
+        Blokid järgnevad üksteisele ja saavad kordamööda alljärgnevad värvid.
+      </p>
+      <ul id="cycle-colors" class="cyclelist"></ul>
+      <button id="cycle-add" class="btn small" type="button">+ Lisa tsükli värv</button>
+
+      <label for="period-until">Korda kuni</label>
+      <input id="period-until" type="date">
+    </div>
+
+    <p class="message hidden" id="period-message"></p>
+
+    <div class="dialog-actions">
+      <button id="period-delete" class="btn danger" type="button">Kustuta</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" data-close>Loobu</button>
+      <button id="period-save" class="btn primary" type="submit">Salvesta</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast hidden"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
