@@ -33,6 +33,8 @@ const el = (tag, className, text) => {
 };
 
 // Abifunktsioonid -----------------------------------------------------------
+const isPhone = () => window.matchMedia("(max-width: 640px)").matches;
+
 function toast(text) {
   const node = $("toast");
   node.textContent = text;
@@ -211,9 +213,10 @@ function renderMonth(container) {
     }
 
     const dayEvents = eventsForDay(day);
-    for (const event of dayEvents.slice(0, 3)) cell.append(eventChip(event));
-    if (dayEvents.length > 3) {
-      const more = el("div", "more", `+${dayEvents.length - 3} veel`);
+    const limit = isPhone() ? 2 : 3;
+    for (const event of dayEvents.slice(0, limit)) cell.append(eventChip(event));
+    if (dayEvents.length > limit) {
+      const more = el("div", "more", `+${dayEvents.length - limit}`);
       more.addEventListener("click", (e) => {
         e.stopPropagation();
         state.cursor = startOfDay(day);
@@ -232,6 +235,9 @@ function renderMonth(container) {
 function enableDragSelect(grid) {
   let anchor = null;
   let dragged = false;
+  // Puutel algab perioodi valik alles pikast vajutusest, muidu segaks see kerimist.
+  let touchHold = false;
+  let holdTimer = null;
 
   const paint = () => {
     for (const cell of grid.children) {
@@ -241,29 +247,64 @@ function enableDragSelect(grid) {
     }
   };
 
+  const dayAt = (x, y) => {
+    const cell = document.elementFromPoint(x, y)?.closest(".day");
+    return cell && grid.contains(cell) ? parseYmd(cell.dataset.date) : null;
+  };
+
+  const cancelHold = () => {
+    clearTimeout(holdTimer);
+    holdTimer = null;
+  };
+
   grid.addEventListener("pointerdown", (event) => {
     const cell = event.target.closest(".day");
     if (!cell || event.target.closest(".chip, .period-band, .more")) return;
     anchor = parseYmd(cell.dataset.date);
     dragged = false;
+    touchHold = event.pointerType === "mouse";
     state.selection = { from: anchor, to: anchor };
     paint();
+    if (!touchHold) {
+      cancelHold();
+      holdTimer = setTimeout(() => {
+        touchHold = true;
+        grid.classList.add("selecting");
+      }, 350);
+    }
   });
 
   grid.addEventListener("pointermove", (event) => {
     if (!anchor) return;
-    const cell = event.target.closest(".day");
-    if (!cell) return;
-    const day = parseYmd(cell.dataset.date);
+    if (!touchHold) {
+      state.selection = null;
+      paint();
+      reset();
+      return;
+    }
+    const day = dayAt(event.clientX, event.clientY);
+    if (!day) return;
     if (!sameDay(day, anchor)) dragged = true;
     state.selection = { from: day < anchor ? day : anchor, to: day < anchor ? anchor : day };
     paint();
   });
 
+  // Puutel tuleb kerimine valiku ajal ise ära keelata.
+  grid.addEventListener("touchmove", (event) => {
+    if (anchor && touchHold) event.preventDefault();
+  }, { passive: false });
+
+  function reset() {
+    cancelHold();
+    anchor = null;
+    touchHold = false;
+    grid.classList.remove("selecting");
+  }
+
   const finish = () => {
     if (!anchor) return;
     const selection = state.selection;
-    anchor = null;
+    reset();
     if (dragged && selection) {
       openPeriodDialog(null, selection.from, selection.to);
     } else if (selection) {
@@ -271,7 +312,14 @@ function enableDragSelect(grid) {
     }
   };
   grid.addEventListener("pointerup", finish);
-  grid.addEventListener("pointerleave", () => { anchor = null; });
+  grid.addEventListener("pointercancel", () => {
+    state.selection = null;
+    paint();
+    reset();
+  });
+  grid.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse") reset();
+  });
 }
 
 // Nädalavaade ---------------------------------------------------------------
@@ -340,6 +388,12 @@ function renderWeek(container) {
   }
 
   container.replaceChildren(head, allday, body);
+  // Kerimine tööpäeva algusesse, et kitsal ekraanil ei paistaks tühi öö.
+  const firstTimed = days
+    .flatMap((day) => eventsForDay(day).filter((e) => !e.all_day))
+    .map((e) => new Date(e.starts_at).getHours())
+    .sort((a, b) => a - b)[0];
+  body.scrollTop = Math.max(0, ((firstTimed ?? 8) - 1) * 44);
 }
 
 // Loendivaade ---------------------------------------------------------------
@@ -830,7 +884,9 @@ async function main() {
     const changed = user?.id !== state.user?.id;
     state.user = user;
     if (user) {
-      $("user-email").textContent = user.email ?? "Konto";
+      const label = user.email ?? "Konto";
+      $("user-email").textContent = label;
+      $("user-email-menu").textContent = label;
       showScreen("app");
       if (changed) reload();
     } else {
