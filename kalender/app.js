@@ -785,13 +785,16 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (state.user === null || document.querySelector("dialog[open]")) return;
     if (event.target.matches("input, textarea")) return;
-    if (event.key === "ArrowLeft") shift(-1);
-    else if (event.key === "ArrowRight") shift(1);
-    else if (event.key.toLowerCase() === "t") { state.cursor = startOfDay(new Date()); reload(); }
-    else if (event.key.toLowerCase() === "m") setView("month");
-    else if (event.key.toLowerCase() === "w") setView("week");
-    else if (event.key.toLowerCase() === "a") setView("agenda");
-    else if (event.key.toLowerCase() === "n") openEventDialog(null);
+    const key = event.key.toLowerCase();
+    if (!["arrowleft", "arrowright", "t", "m", "w", "a", "n"].includes(key)) return;
+    event.preventDefault();
+    if (key === "arrowleft") shift(-1);
+    else if (key === "arrowright") shift(1);
+    else if (key === "t") { state.cursor = startOfDay(new Date()); reload(); }
+    else if (key === "m") setView("month");
+    else if (key === "w") setView("week");
+    else if (key === "a") setView("agenda");
+    else if (key === "n") openEventDialog(null);
   });
 }
 

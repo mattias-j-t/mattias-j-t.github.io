@@ -181,7 +181,7 @@ textarea { resize: vertical; }
 
 .period-bands { display: flex; flex-direction: column; gap: 2px; }
 .period-band {
-  font-size: 11px; line-height: 1.35; padding: 1px 5px; border-radius: 4px;
+  font-size: 11px; line-height: 1.35; min-height: 16px; padding: 1px 5px; border-radius: 4px;
   color: #1f2933; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
 }
 
