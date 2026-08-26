@@ -2,7 +2,9 @@
 <html lang="et">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-title" content="Kalender">
 <title>Kalender</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -77,8 +79,9 @@
       <button id="new-event" class="btn primary" type="button">+ Sündmus</button>
       <button id="new-period" class="btn" type="button">+ Periood</button>
       <details class="usermenu">
-        <summary id="user-email" class="btn ghost"></summary>
+        <summary class="btn ghost"><span id="user-email"></span></summary>
         <div class="usermenu-panel">
+          <span id="user-email-menu" class="account"></span>
           <button id="sign-out" class="btn link" type="button">Logi välja</button>
         </div>
       </details>
@@ -91,7 +94,7 @@
     <aside class="sidebar">
       <section>
         <h2>Perioodid</h2>
-        <p class="hint">Vali kuuvaates hiirega päevad, et märkida periood.</p>
+        <p class="hint">Periood: lohista kuuvaates üle päevade (telefonis hoia sõrme ühel päeval all ja lohista).</p>
         <ul id="period-list" class="list"></ul>
       </section>
       <section>

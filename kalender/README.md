@@ -44,6 +44,7 @@ Kui `config.js` on tühi, näitab leht seadistuse hoiatust.
   terve päeva sündmuse, asukoha, märkmed ja värvi.
 - **Periood**: lohista kuuvaates üle mitme päeva → avaneb perioodi dialoog
   (nt reedest ülejärgmise reedeni). Perioodile saab anda nime ja värvi.
+  Telefonis hoia sõrme esimesel päeval all ja lohista siis üle vahemiku.
 - **Korduv periood**: märgi „Kordub tsüklina“. Märgitud vahemiku pikkus on ühe
   bloki pikkus ja järjestikused blokid saavad kordamööda tsükli värvid. Näiteks
   14-päevane periood kahe värviga: 2 nädalat värv A, järgmised 2 nädalat värv B,
